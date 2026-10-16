@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ————— Design tokens BeaverLaunch ————— */
+:root {
+  --sand: #ebe7d0;
+  --terracotta: #b05f3f;
+  --forest: #2d4f38;
+  --slate-blue: #3f5f85;
+  --mist: #9db0cb;
+  --paper: #eef1f6;
+  --white: #ffffff;
+  --grey: #d9d9d9;
+}
+
+@theme {
+  --color-sand: #ebe7d0;
+  --color-terracotta: #b05f3f;
+  --color-forest: #2d4f38;
+  --color-slate-blue: #3f5f85;
+  --color-mist: #9db0cb;
+  --color-paper: #eef1f6;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 24px;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--sand);
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--terracotta);
+  color: #fff;
+}
+
+/* Focus visibles AA */
+:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Masque des titres splittés */
+.split-mask {
+  overflow: clip;
+  display: block;
+}
+.hero-line {
+  display: block;
+  will-change: transform;
+}
+
+/* Polaroïd : papier texturé */
+.polaroid-frame {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 255, 255, 0.9), transparent 60%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.012) 0 2px,
+      transparent 2px 4px
+    ),
+    #fffdf7;
+}
+
+/* Halo couronne */
+.crown-glow {
+  filter: drop-shadow(0 0 12px rgba(176, 95, 63, 0.9));
+}
+
+/* Accessibilité : texte lisible lecteurs d'écran */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
