@@ -15,7 +15,7 @@ const BookingPanel = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[560px] animate-pulse rounded-[24px] border border-terracotta bg-paper" aria-hidden="true" />
+      <div className="h-[560px] animate-pulse rounded-[24px] border border-terracotta bg-[#F7F2DF]" aria-hidden="true" />
     ),
   },
 );
@@ -99,7 +99,7 @@ export function Offers() {
   };
 
   return (
-    <section ref={rootRef} id="offres" aria-labelledby="offres-title" className="bg-white px-5 py-20 md:px-10 md:py-28">
+    <section ref={rootRef} id="offres" aria-labelledby="offres-title" className="bg-sand px-5 py-20 md:px-10 md:py-28">
       <div className="mx-auto max-w-7xl">
         <h2 id="offres-title" className="offers-title mx-auto max-w-3xl text-balance text-center text-4xl font-bold leading-tight text-slate-blue md:text-6xl">
           Des offres adaptées à chaque budget
@@ -108,15 +108,15 @@ export function Offers() {
         <div className="mt-14 grid gap-12 md:grid-cols-2 md:gap-12">
           {/* Gauche : prise de rendez-vous */}
           <div className="offer-col">
-            <h3 className="mb-6 text-center text-2xl font-medium text-slate-blue">Booker un randez-vous</h3>
+            <h3 className="mb-6 text-center text-2xl font-medium text-slate-blue">Booker un rendez-vous</h3>
             <BookingPanel />
           </div>
 
           {/* Droite : budget / formules */}
           <div className="offer-col flex flex-col items-center text-center">
-            <h3 className="text-2xl font-medium text-slate-blue">Votre budjet , nos offres</h3>
+            <h3 className="text-2xl font-medium text-slate-blue">Votre budget, nos offres</h3>
             <ArrowDown className="offer-arrow mt-3 text-neutral-900" size={28} aria-hidden="true" />
-            <p className="mt-4 max-w-md text-[17px] leading-[1.6] text-mist">
+            <p className="mt-4 max-w-md text-[17px] leading-[1.6] text-neutral-900">
               Deux formules simples : la <strong className="text-slate-blue">Création</strong> (site sur-mesure,
               design immersif, lancement clé en main) et l’<strong className="text-slate-blue">Hébergement</strong>{" "}
               (maintenance, accès admin, insights et KPI). Combinez-les selon votre budget et vos ambitions.
@@ -142,7 +142,7 @@ export function Offers() {
               {FORMULAS.map((f) => (
                 <article
                   key={f.name}
-                  className="formula-card flex items-start gap-4 rounded-[24px] border border-terracotta bg-paper px-5 py-4 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)]"
+                  className="formula-card flex items-start gap-4 rounded-[24px] border border-terracotta bg-[#F7F2DF] px-5 py-4 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)]"
                 >
                   <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-forest text-white">
                     <Tag size={16} aria-hidden="true" />

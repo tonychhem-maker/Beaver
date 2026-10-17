@@ -96,7 +96,7 @@ export function BookingPanel() {
     );
 
   return (
-    <div className="rounded-[24px] border border-terracotta bg-paper p-5 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)] md:p-7">
+    <div className="rounded-[24px] border border-terracotta bg-[#F7F2DF] p-5 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)] md:p-7">
       {status === "success" && date && slot ? (
         <div className="flex flex-col items-center py-6 text-center">
           <SuccessCheck />
@@ -104,7 +104,7 @@ export function BookingPanel() {
           <p className="mt-2 text-[17px] text-slate-blue">
             {formatFrenchDate(date)} à <strong className="text-terracotta">{slot}</strong>
           </p>
-          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-mist">
+          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-slate-blue">
             Un email de confirmation vient de vous être envoyé. Nous vous recontactons très vite !
           </p>
           <button
@@ -128,7 +128,7 @@ export function BookingPanel() {
               onClick={goToPrev}
               disabled={isCurrentMonth}
               aria-label="Mois précédent"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-blue transition-colors hover:bg-sand disabled:cursor-not-allowed disabled:opacity-30"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-blue transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft size={20} />
             </button>
@@ -139,7 +139,7 @@ export function BookingPanel() {
               type="button"
               onClick={goToNext}
               aria-label="Mois suivant"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-blue transition-colors hover:bg-sand"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-blue transition-colors hover:bg-white"
             >
               <ChevronRight size={20} />
             </button>
@@ -147,7 +147,7 @@ export function BookingPanel() {
 
           <div className="mt-4 grid grid-cols-7 gap-1 text-center" role="grid" aria-label="Choisir un jour">
             {WEEKDAYS.map((w, i) => (
-              <span key={`${w}-${i}`} className="py-1 text-xs font-bold uppercase text-mist">
+              <span key={`${w}-${i}`} className="py-1 text-xs font-bold uppercase text-slate-blue">
                 {w}
               </span>
             ))}
@@ -166,8 +166,8 @@ export function BookingPanel() {
                   aria-label={`${Number(iso.slice(8))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`}
                   className={cx(
                     "relative aspect-square rounded-full text-sm transition-all duration-200",
-                    disabled && "cursor-not-allowed text-mist/40 line-through",
-                    !disabled && !isSelected && "text-slate-blue hover:bg-sand",
+                    disabled && "cursor-not-allowed text-slate-blue/30 line-through",
+                    !disabled && !isSelected && "text-slate-blue hover:bg-white",
                     isSelected && "bg-forest font-bold text-white shadow-[0_6px_14px_-6px_rgba(45,79,56,0.8)]",
                   )}
                 >
@@ -205,7 +205,7 @@ export function BookingPanel() {
                           "rounded-full px-5 py-2 text-sm font-medium transition-all duration-200",
                           slot === s
                             ? "scale-[1.04] bg-forest text-white shadow-[0_8px_18px_-8px_rgba(45,79,56,0.9)]"
-                            : "border border-terracotta/70 bg-white text-slate-blue hover:bg-sand",
+                            : "border border-terracotta/70 bg-white text-slate-blue hover:bg-[#FBF8EC]",
                         )}
                       >
                         {s}
@@ -231,7 +231,7 @@ export function BookingPanel() {
                 noValidate
               >
                 <div className="mt-5 space-y-4 border-t border-dashed border-terracotta/50 pt-5">
-                  <p className="text-sm text-mist">
+                  <p className="text-sm text-slate-blue">
                     <strong className="text-terracotta">{date ? formatFrenchDate(date) : ""}</strong> à{" "}
                     <strong className="text-terracotta">{slot}</strong>
                   </p>
