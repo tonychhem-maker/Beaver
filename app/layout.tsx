@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
+import { ExpandTransition } from "@/components/transition/ExpandTransition";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -40,7 +41,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="fr" className={`${dmSans.variable} h-full scroll-smooth antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-        {children}
+        <ExpandTransition />
+        <div id="site-shell" className="flex min-h-full flex-1 flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );

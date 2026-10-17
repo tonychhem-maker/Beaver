@@ -5,7 +5,7 @@ import Image from "next/image";
 import { gsap, DrawSVGPlugin, useGSAP, registerGsap } from "@/lib/gsap";
 import { StatCard } from "@/components/ui/StatCard";
 import { MagneticWrapper } from "@/components/ui/MagneticWrapper";
-import { scrollToTarget } from "@/lib/utils";
+import { expandNavigate } from "@/components/transition/ExpandTransition";
 
 const STATS = [
   { value: 5, prefix: "", suffix: "+", label: "client passé par BeaverLaunch" },
@@ -79,7 +79,7 @@ export function Stats() {
               <MagneticWrapper>
                 <button
                   type="button"
-                  onClick={() => scrollToTarget("#offres")}
+                  onClick={(e) => expandNavigate("/valeurs", e.currentTarget)}
                   className="group relative overflow-hidden rounded-full bg-forest px-10 py-5 text-lg font-medium text-[#F5F1E0]"
                 >
                   <span className="absolute inset-0 translate-y-full bg-[#23402c] transition-transform duration-300 group-hover:translate-y-0" aria-hidden="true" />
