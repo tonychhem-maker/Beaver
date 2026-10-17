@@ -63,14 +63,18 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
 ### Chemin signature (`components/sections/PathTimeline.tsx`)
 - `STEP_TIMES = [0.05, 1.25, 2.45, 3.35]` : seuils d'activation des 4 étapes,
   ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`).
-- **Cartes d'étape** liées à ces labels : entrée `y:40 → 0`, `opacity 0 → 1`,
-  `scale 0.92 → 1`, `back.out(1.6)` (0.6s), contenu interne en stagger 0.08s
-  (pastille forest, titre terracotta, texte slate-blue, icône lucide).
-  La carte précédente passe en `scale 0.95 / opacity 0.5` (desktop) ou fond
-  (`opacity 0`) en mobile (une seule carte visible, empilée en `min-h`).
-- **Lignes pointillées terracotta** (`stroke-dasharray: 1 8`) reliant chaque
-  carte au point de l'étape : points recalculés au pixel via `getBoundingClientRect`
-  (ResizeObserver + listener `resize`).
+- **Cartes d'étape** liées à ces labels, affichées **une par une comme des
+  pages qui défilent** (desktop ET mobile) : une seule carte visible dans un
+  slot centré (`max-w-2xl`, `min-h`), la suivante monte depuis le bas
+  (`y: 40 → 0`, `back.out(1.6)`, 0.6s, stagger interne 0.08s) pendant que la
+  précédente glisse vers le haut (`y: -40`, `opacity 0`, `power2.in`) —
+  tout en `scrub`, donc réversible au scroll inverse.
+- **Lignes pointillées terracotta** (`stroke-dasharray: 1 8`) : seul le tracé
+  de l'étape active est visible, du point vers le centre du slot de carte
+  (coordonnées fixes dans le viewBox, pas de mesure DOM).
+- **Points d'avancement** sous la carte (`.step-dot`) : l'actif passe en
+  terracotta + `scale 1.35`, le précédent revient en mist — pilotés par la
+  timeline, sans aucun état React.
 - `CROWN_GLOWS = [6, 12, 18, 24]` : rayon du `drop-shadow` terracotta,
   une pointe de couronne s'allume par étape.
 - Remplissage couronne : `clipPath` rect animé `y: -14 → -80`, `height: 6 → 76`

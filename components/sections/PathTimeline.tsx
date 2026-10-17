@@ -80,7 +80,6 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
   const viewBox = vertical ? "0 0 400 930" : "0 0 1300 360";
   const gradId = `beaver-grad-${uid}`;
   const clipId = `crown-clip-${uid}`;
-  const stack = vertical && !reduced;
 
   useGSAP(
     () => {
@@ -94,6 +93,7 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
       const stepEls = q(".step");
       const cards = q(".step-card");
       const connectors = q(".step-connector");
+      const dots = q(".step-dot");
       const clipRect = q(".crown-clip-rect")[0];
       const crown = q(".crown")[0];
       const crownColored = q(".crown-colored")[0];
@@ -119,33 +119,12 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
         gsap.set(halo, { opacity: 0.5 });
         gsap.set(clipRect, { attr: { y: -80, height: 76 } });
         gsap.set(pen, { opacity: 0 });
-        gsap.set(connectors, { opacity: 1 });
         return;
       }
 
       gsap.set(cards, { y: 40, opacity: 0, scale: 0.92 });
       gsap.set(connectors, { opacity: 0 });
-
-      // ——— Lignes pointillées : carte ↔ point sur le tracé (mesurées au pixel) ———
-      const layoutConnectors = (): void => {
-        if (vertical || !svgEl) return;
-        const srect = svgEl.getBoundingClientRect();
-        if (srect.width === 0) return;
-        const toViewBoxX = (px: number): number => (px / srect.width) * 1300;
-        cards.forEach((card, i) => {
-          const crect = card.getBoundingClientRect();
-          const centerPx = crect.left + crect.width / 2 - srect.left;
-          const cx = toViewBoxX(centerPx);
-          const s = steps[i];
-          // Du point de l'étape → couloir horizontal (sous le tracé) → centre de la carte.
-          connectors[i]?.setAttribute("points", `${s.x},${s.y} ${s.x},320 ${cx},320 ${cx},355`);
-        });
-      };
-      layoutConnectors();
-      const onResize = (): void => layoutConnectors();
-      window.addEventListener("resize", onResize);
-      const ro = new ResizeObserver(() => layoutConnectors());
-      ro.observe(root);
+      gsap.set(dots, { backgroundColor: "#9DB0CB", scale: 1 });
 
       // Halo qui pulse en boucle (scale seul, l'opacité reste pilotée par le scrub).
       const pulse = gsap.to(halo, { scale: 1.3, duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
@@ -233,22 +212,24 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
           t,
         );
 
-        // ——— Carte de révélation de l'étape (labels step1…step4) ———
+        // ——— Carte d'étape : une seule visible, remplacée comme une page qui défile ———
         const card = cards[i] as Element;
         const parts = Array.from((card as HTMLElement).querySelectorAll<HTMLElement>(".step-card-part"));
+        if (i > 0) {
+          // La carte précédente glisse vers le haut (page qu'on fait défiler).
+          tl.to(cards[i - 1] as Element, { y: -40, opacity: 0, scale: 0.95, duration: 0.5, ease: "power2.in" }, t);
+          if (!vertical) tl.to(connectors[i - 1] as Element, { opacity: 0, duration: 0.35 }, t);
+          tl.to(dots[i - 1] as Element, { backgroundColor: "#9DB0CB", scale: 1, duration: 0.3 }, t);
+        }
+        // Nouvelle carte qui monte depuis le bas.
         tl.to(card, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, t);
         if (parts.length > 0) {
           tl.to(parts, { y: 0, opacity: 1, duration: 0.45, stagger: 0.08, ease: "power2.out" }, t);
         }
-        if (!stack) {
-          // Ligne pointillée qui apparaît quand le tracé atteint l'étape.
-          tl.to(connectors[i] as Element, { opacity: 1, duration: 0.4 }, t);
-          // La carte précédente se réduit mais reste visible (trace du parcours).
-          if (i > 0) tl.to(cards[i - 1] as Element, { scale: 0.95, opacity: 0.5, duration: 0.4 }, t);
-        } else if (i > 0) {
-          // Mobile : une seule carte visible, la précédente fond.
-          tl.to(cards[i - 1] as Element, { y: -12, opacity: 0, duration: 0.4 }, t);
-        }
+        // Ligne pointillée de l'étape active vers la carte.
+        if (!vertical) tl.to(connectors[i] as Element, { opacity: 1, duration: 0.35 }, t);
+        // Point d'avancement actif (terracotta).
+        tl.to(dots[i] as Element, { backgroundColor: "#B05F3F", scale: 1.35, duration: 0.3 }, t);
       });
 
       // Finale : halo, étincelles dorées (angles aléatoires), léger shake.
@@ -262,8 +243,6 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
       tl.to(svgEl as Element, { x: 5, duration: 0.05, repeat: 3, yoyo: true }, 3.88);
 
       return () => {
-        window.removeEventListener("resize", onResize);
-        ro.disconnect();
         pulse.kill();
         burstTl?.kill();
       };
@@ -296,9 +275,10 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
           </clipPath>
         </defs>
 
-        {/* Lignes pointillées carte ↔ étape (desktop uniquement) */}
+        {/* Lignes pointillées : étape active ↔ carte affichée (desktop uniquement) */}
         {!vertical &&
-          steps.map((_, i) => (
+          !reduced &&
+          steps.map((s, i) => (
             <polyline
               key={`connector-${i}`}
               className="step-connector"
@@ -307,7 +287,7 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeDasharray="1 8"
-              points=""
+              points={`${s.x},${s.y} ${s.x},320 650,320 650,355`}
             />
           ))}
 
@@ -357,14 +337,14 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
         </g>
       </svg>
 
-      {/* Cartes de révélation des étapes */}
-      <div className={stack ? "relative mt-6 min-h-[260px]" : "mt-6 grid grid-cols-1 gap-4 md:grid-cols-4"}>
+      {/* Carte d'étape : une seule à la fois, remplacée comme une page qui défile */}
+      <div className={reduced ? "mt-6 grid grid-cols-1 gap-4 md:grid-cols-4" : "relative mt-6 min-h-[280px] md:min-h-[220px]"}>
         {STEP_CARDS.map(({ title, text, Icon }, i) => (
           <article
             key={title}
             className={[
               "step-card rounded-[24px] border border-terracotta bg-paper p-5 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)]",
-              stack ? "absolute inset-x-0 top-0" : "",
+              reduced ? "" : "absolute inset-x-0 top-0 mx-auto w-full max-w-2xl",
             ].join(" ")}
           >
             <div className="step-card-part flex items-center gap-3">
@@ -382,6 +362,15 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
           </article>
         ))}
       </div>
+
+      {/* Points d'avancement du parcours */}
+      {!reduced && (
+        <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
+          {STEP_CARDS.map(({ title }) => (
+            <span key={title} className="step-dot h-2.5 w-2.5 rounded-full bg-mist transition-none" />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
