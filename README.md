@@ -81,6 +81,12 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
   sur le titre, effet de page découpée, tout en `scrub`.
 - **Libellés inline dans le SVG** sous chaque point (desktop) ou à droite
   (mobile), en slate-blue, 2 à 3 lignes selon l'espace.
+- **Visuel d'illustration** : maquette vectorielle d'une landing page
+  événementiel (« Lumina Events ») dessinée en SVG pur dans
+  `components/sections/LandingMockup.tsx` — fenêtre navigateur, nav, hero
+  avec titre terracotta, visuel dégradé et cartes de prestations, dans les
+  couleurs de la marque. `preserveAspectRatio="xMidYMid slice"` = cadrage
+  « object-cover » à toutes les tailles ; aucune image externe.
 - `CROWN_GLOWS = [6, 12, 18, 24]` : rayon du `drop-shadow` terracotta,
   une pointe de couronne s'allume par étape.
 - Remplissage couronne : `clipPath` rect animé `y: -14 → -80`, `height: 6 → 76`
