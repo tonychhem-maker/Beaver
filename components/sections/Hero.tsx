@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { ImageIcon } from "lucide-react";
 import { gsap, SplitText, useGSAP, registerGsap } from "@/lib/gsap";
 import { PolaroidCard } from "@/components/ui/PolaroidCard";
+import { LandingMockup } from "@/components/sections/LandingMockup";
 import { scrollToTarget } from "@/lib/utils";
 
 const LEFT_IMG =
@@ -159,15 +159,8 @@ export function Hero() {
             className="hero-screen relative z-10 w-full max-w-[800px] overflow-hidden rounded-2xl border border-white/60 bg-paper shadow-[0_40px_90px_-30px_rgba(45,79,56,0.45)]"
             style={{ clipPath: "inset(0% 0% 0% 0% round 16px)", aspectRatio: "2 / 1" }}
           >
-            <div className="flex items-center gap-1.5 border-b border-slate-blue/10 bg-white/80 px-4 py-3" aria-hidden="true">
-              <span className="h-2.5 w-2.5 rounded-full bg-terracotta/70" />
-              <span className="h-2.5 w-2.5 rounded-full bg-forest/50" />
-              <span className="h-2.5 w-2.5 rounded-full bg-mist" />
-            </div>
-            <div className="flex h-full flex-col items-center justify-center gap-3 pb-10 text-mist">
-              <ImageIcon size={72} strokeWidth={1.25} aria-hidden="true" />
-              <p className="text-sm font-medium">Mockup de votre futur site immersif</p>
-            </div>
+            {/* Landing page événementiel créée pour un client (maquette SVG) */}
+            <LandingMockup />
           </div>
           <PolaroidCard
             src={RIGHT_IMG}

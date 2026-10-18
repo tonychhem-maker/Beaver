@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Image from "next/image";
 import { gsap, useGSAP, registerGsap } from "@/lib/gsap";
-import { LandingMockup } from "@/components/sections/LandingMockup";
 
 /** Libellés sous chaque point du tracé (1 à 3 lignes selon l'espace). */
 const STEP_LABELS: string[][] = [
@@ -31,6 +31,11 @@ const CONTENT_STEPS = [
     text: "Vos accès, vos KPI et vos réglages : à vous de jouer. On reste juste à côté si vous avez besoin de nous.",
   },
 ];
+
+const CONTENT_IMG = {
+  src: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=70",
+  alt: "Maquette de site web en cours de création",
+};
 
 const DESKTOP_PATH =
   "M 60 200 C 140 80, 260 80, 330 190 C 400 300, 520 300, 600 190 C 680 80, 800 80, 870 190 C 940 300, 1060 300, 1140 190";
@@ -298,9 +303,9 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
         ))}
       </div>
 
-      {/* Maquette : landing page événementiel créée pour un client */}
+      {/* Visuel d'illustration (statique, comme la maquette) */}
       <div className="relative h-48 overflow-hidden rounded-[24px] bg-paper md:h-[clamp(170px,24vh,250px)]">
-        <LandingMockup />
+        <Image src={CONTENT_IMG.src} alt={CONTENT_IMG.alt} fill sizes="(max-width: 768px) 92vw, 560px" className="object-cover" loading="lazy" />
       </div>
 
       {/* Tracé + couronne (hauteur naturelle du viewBox, comme la maquette) */}
