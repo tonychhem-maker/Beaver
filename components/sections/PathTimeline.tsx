@@ -76,6 +76,9 @@ const SPIKES = [
  */
 const STEP_TIMES = [0.05, 1.25, 2.45, 3.35];
 const CROWN_GLOWS = [6, 12, 18, 24];
+/** Échange du bloc d'étape : la sortie se termine (presque) avant l'entrée,
+ *  jamais deux sections visibles en même temps. */
+const SWAP = { exit: 0.35, enterDelay: 0.3, enter: 0.5 };
 
 function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -216,11 +219,15 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
           t,
         );
 
-        // ——— Section de contenu de l'étape : la précédente glisse vers le haut ———
+        // ——— Section de contenu de l'étape : sortie puis entrée, jamais à la fois ———
         if (i > 0) {
-          tl.to(states[i - 1] as Element, { y: -30, opacity: 0, duration: 0.45, ease: "power2.in" }, t);
+          tl.to(states[i - 1] as Element, { y: -40, opacity: 0, duration: SWAP.exit, ease: "power2.in" }, t);
         }
-        tl.to(states[i] as Element, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, t);
+        tl.to(
+          states[i] as Element,
+          { y: 0, opacity: 1, scale: 1, duration: SWAP.enter, ease: "back.out(1.4)" },
+          i === 0 ? t : t + SWAP.enterDelay,
+        );
       });
 
       // Finale : halo, étincelles dorées (angles aléatoires), léger shake.
@@ -249,8 +256,11 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
     .join(" ");
 
   const blockClass = [
-    "relative min-h-[200px] md:min-h-0 md:h-[clamp(170px,24vh,250px)]",
-    !reduced && "sticky top-[76px] z-20 bg-sand pt-1 md:static md:z-auto md:bg-transparent md:pt-0",
+    "relative min-h-[200px] md:min-h-0",
+    // Boîte découpée : rien ne peut déborder sur le titre ; hauteur fixe
+    // uniquement hors reduced-motion (où les sections s'empilent en flow).
+    !reduced &&
+      "overflow-hidden sticky top-[76px] z-20 bg-sand pt-1 md:static md:z-auto md:bg-transparent md:pt-0 md:h-[clamp(170px,24vh,250px)]",
   ]
     .filter(Boolean)
     .join(" ");

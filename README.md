@@ -65,9 +65,11 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
   ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`).
 - **Bloc de contenu par étape** (`.service-state`) au-dessus du tracé : une
   seule section visible (`Création` → `Lancement` → `Hébergement` → `Accès
-  admin`), la précédente glisse vers le haut (`y: -30`, `opacity 0`,
-  `power2.in`) pendant que la suivante monte (`back.out(1.4)`, 0.6s) —
-  sensation de page qui défile, tout en `scrub`.
+  admin`). Passage **séquentiel** (`SWAP`) : la précédente sort d'abord
+  (`y: -40`, `opacity 0`, `power2.in`, 0.35s) puis la suivante entre
+  (`y: 30 → 0`, `back.out(1.4)`, 0.5s, décalée de 0.3s) — jamais deux
+  textes visibles en même temps. Le bloc a `overflow-hidden` : rien ne
+  peut déborder sur le titre, effet de page découpée, tout en `scrub`.
 - **Libellés inline dans le SVG** sous chaque point (desktop) ou à droite
   (mobile), en slate-blue, 2 à 3 lignes selon l'espace.
 - `CROWN_GLOWS = [6, 12, 18, 24]` : rayon du `drop-shadow` terracotta,
