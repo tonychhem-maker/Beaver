@@ -71,14 +71,21 @@ const SPIKES = [
  *   échange sa section (sortie vers le haut / entrée par le bas) ;
  * - DrawSVG + MotionPath sur le tracé, couronne qui se remplit puis éclate.
  *
- * Réglages : STEP_TIMES (seuils), CROWN_GLOWS (glow), durées 0.6/0.45 (échange
- * du bloc), `end: "+=260%"` (longueur totale du défilement).
+ * Réglages : STEP_TIMES (seuils), CROWN_GLOWS (glow), SWAP (échange du bloc),
+ * `end: "+=260%"` (longueur totale du défilement).
+ *
+ * Ordre imposé au scrub : le dernier échange de texte se termine BEAUCOUP
+ * avant la couronne (≈ 90% du scrub), le reliquat ne contient plus que la
+ * couronne (remplissage, halo, étincelles, pop). Ainsi, quand le pin se
+ * libère et que la section suivante prend le relais, plus aucun texte n'est
+ * en transition — jamais d'empilement à la main de section.
  */
-const STEP_TIMES = [0.05, 1.25, 2.45, 3.35];
+const STEP_TIMES = [0.05, 1.1, 2.05, 2.95];
 const CROWN_GLOWS = [6, 12, 18, 24];
-/** Échange du bloc d'étape : la sortie se termine (presque) avant l'entrée,
- *  jamais deux sections visibles en même temps. */
-const SWAP = { exit: 0.35, enterDelay: 0.3, enter: 0.5 };
+/** Échange du bloc d'étape STRICTEMENT séquentiel : la sortie se termine
+ *  (exit) avant que l'entrée ne commence (enterDelay = exit) — jamais deux
+ *  sections visibles en même temps, même à faible vélocité de scroll. */
+const SWAP = { exit: 0.35, enterDelay: 0.35, enter: 0.5 };
 
 function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) {
   const rootRef = useRef<HTMLDivElement | null>(null);

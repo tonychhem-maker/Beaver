@@ -61,15 +61,21 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
 - Parallax souris : `gsap.quickTo`, amplitude ±20px (`nx * 40`), inertie `0.6s`.
 
 ### Chemin signature (`components/sections/PathTimeline.tsx`)
-- `STEP_TIMES = [0.05, 1.25, 2.45, 3.35]` : seuils d'activation des 4 étapes,
-  ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`).
+- `STEP_TIMES = [0.05, 1.1, 2.05, 2.95]` : seuils d'activation des 4 étapes,
+  ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`). Le dernier
+  échange de texte se termine à ~90% du scrub : le reliquat (remplissage de
+  la couronne, halo, étincelles, pop) ne contient plus aucun texte en
+  transition, donc **dès que la couronne est atteinte, le pin se libère et
+  la section suivante prend le relais sans aucun empilement** (même avec le
+  retard de `scrub: 1`).
 - **Bloc de contenu par étape** (`.service-state`) au-dessus du tracé : une
   seule section visible (`Création` → `Lancement` → `Hébergement` → `Accès
-  admin`). Passage **séquentiel** (`SWAP`) : la précédente sort d'abord
-  (`y: -40`, `opacity 0`, `power2.in`, 0.35s) puis la suivante entre
-  (`y: 30 → 0`, `back.out(1.4)`, 0.5s, décalée de 0.3s) — jamais deux
-  textes visibles en même temps. Le bloc a `overflow-hidden` : rien ne
-  peut déborder sur le titre, effet de page découpée, tout en `scrub`.
+  admin`). Passage **strictement séquentiel** (`SWAP`) : la précédente sort
+  d'abord (`y: -40`, `opacity 0`, `power2.in`, 0.35s) puis la suivante
+  entre (`y: 30 → 0`, `back.out(1.4)`, 0.5s, décalée de 0.35s = durée de la
+  sortie) — jamais deux textes visibles en même temps, même à faible
+  vélocité de scroll. Le bloc a `overflow-hidden` : rien ne peut déborder
+  sur le titre, effet de page découpée, tout en `scrub`.
 - **Libellés inline dans le SVG** sous chaque point (desktop) ou à droite
   (mobile), en slate-blue, 2 à 3 lignes selon l'espace.
 - `CROWN_GLOWS = [6, 12, 18, 24]` : rayon du `drop-shadow` terracotta,
