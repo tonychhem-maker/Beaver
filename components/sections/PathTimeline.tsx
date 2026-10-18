@@ -249,18 +249,22 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
   );
 
   const rootClass = [
-    "flex flex-col gap-4 md:grid md:grid-cols-2 md:grid-rows-[auto_auto_1fr] md:gap-x-10 md:gap-y-5",
-    !reduced && "md:h-[calc(100dvh-96px)]",
+    // Lignes auto : la boîte du tracé garde sa hauteur naturelle (comme la
+    // maquette) ; l'espace libre devient des respirations (content-between).
+    "flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-x-10 md:gap-y-5 md:content-between",
+    !reduced && "md:min-h-[calc(100dvh-96px)]",
   ]
     .filter(Boolean)
     .join(" ");
 
   const blockClass = [
     "relative min-h-[200px] md:min-h-0",
-    // Boîte découpée : rien ne peut déborder sur le titre ; hauteur fixe
-    // uniquement hors reduced-motion (où les sections s'empilent en flow).
+    // Boîte découpée : rien ne peut déborder sur le titre. En mobile le bloc
+    // est sticky (qui sert aussi de conteneur de positionnement) ; en desktop
+    // md:relative — JAMAIS md:static, sinon les états absolues s'échappent
+    // sur le titre. Hauteur fixe uniquement hors reduced-motion.
     !reduced &&
-      "overflow-hidden sticky top-[76px] z-20 bg-sand pt-1 md:static md:z-auto md:bg-transparent md:pt-0 md:h-[clamp(170px,24vh,250px)]",
+      "overflow-hidden sticky top-[76px] z-20 bg-sand pt-1 md:relative md:z-auto md:bg-transparent md:pt-0 md:h-[clamp(170px,24vh,250px)]",
   ]
     .filter(Boolean)
     .join(" ");
@@ -294,12 +298,12 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
         <Image src={CONTENT_IMG.src} alt={CONTENT_IMG.alt} fill sizes="(max-width: 768px) 92vw, 560px" className="object-cover" loading="lazy" />
       </div>
 
-      {/* Tracé + couronne */}
-      <div className="flex flex-col overflow-hidden rounded-[12px] border border-terracotta/70 bg-gradient-to-b from-[#F1ECDA] to-[#E2DABD] p-3 md:col-span-2 md:h-full md:min-h-0 md:p-6">
+      {/* Tracé + couronne (hauteur naturelle du viewBox, comme la maquette) */}
+      <div className="flex flex-col overflow-hidden rounded-[12px] border border-terracotta/70 bg-gradient-to-b from-[#F1ECDA] to-[#E2DABD] p-3 md:col-span-2 md:p-5">
         <svg
           viewBox={viewBox}
           preserveAspectRatio="xMidYMid meet"
-          className="h-auto w-full md:h-full md:min-h-0"
+          className="h-auto w-full"
           role="img"
           aria-label="Parcours en 4 étapes : création, lancement, hébergement de votre site, puis à vous de jouer avec les accès admin, jusqu'à la couronne."
         >

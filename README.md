@@ -82,9 +82,13 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
   quand `progress >= 0.985` (rejoué à chaque arrivée, réinitialisé sous `0.9`).
 - Desktop : bloc **entier épinglé** sous le header — `pin: true`,
   `start: "top top+=80"`, `end: "+=260%"`, `scrub: 1`, racine en
-  `md:h-[calc(100dvh-96px)]` (titre + bloc + tracé tiennent dans le viewport :
-  aucun vide au-dessus pendant le scrub). Le bloc de contenu devient `sticky`
-  en mobile pour rester visible pendant le tracé vertical.
+  `md:min-h-[calc(100dvh-96px)]` avec lignes auto + `md:content-between`
+  (titre + bloc + tracé tiennent dans le viewport, aucun vide au-dessus, et
+  l'espace libre devient des respirations — la boîte du tracé garde sa
+  hauteur naturelle `viewBox 1300×360`, aspect ~3,6 comme la maquette). Le
+  bloc de contenu devient `sticky` en mobile pour rester visible pendant le
+  tracé vertical ; en desktop il reste `md:relative` (jamais `md:static`,
+  sinon les sections absolues s'échappent sur le titre).
   Mobile (< 768px) : tracé vertical, sans pin (`"top 75%" → "bottom 55%"`).
 - `prefers-reduced-motion` : tout affiché (chemin 100%, couronne allumée,
   cartes visibles, lignes pointillées opaques), sans timeline.
