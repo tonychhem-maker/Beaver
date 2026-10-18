@@ -5,7 +5,6 @@ import { Cursor } from "@/components/layout/Cursor";
 import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Hero } from "@/components/sections/Hero";
-import { Services } from "@/components/sections/Services";
 import { PathTimeline } from "@/components/sections/PathTimeline";
 import { Stats } from "@/components/sections/Stats";
 import { Offers } from "@/components/sections/Offers";
@@ -20,8 +19,7 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Services />
-        <section aria-label="Votre parcours vers la couronne" className="bg-sand px-5 pb-20 md:px-10 md:pb-28">
+        <section id="services" aria-labelledby="services-title" className="bg-sand px-5 py-16 md:px-10 md:py-24">
           <PathTimeline />
         </section>
         <Stats />

@@ -30,7 +30,7 @@ app/                  layout.tsx (DM Sans, SEO, JSON-LD, shell #site-shell + Exp
   api/booking/        POST : validation Zod + emails Resend (confirmation)
   valeurs/page.tsx    page « Nos valeurs » (metadata + contenu client)
 components/layout/    Header, Footer, Preloader, Cursor, ScrollProgress, SmoothScroll
-components/sections/  Hero, Services, PathTimeline, Stats, Offers, Valeurs
+components/sections/  Hero, PathTimeline (fusion titre + bloc d'étape + tracé), Stats, Offers, Valeurs
 components/booking/   BookingPanel (calendrier + créneaux + formulaire), SuccessCheck (DrawSVG)
 components/transition/ExpandTransition (transition d'expansion plein écran)
 components/ui/        Button, PolaroidCard, StatCard, MagneticWrapper
@@ -63,18 +63,13 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
 ### Chemin signature (`components/sections/PathTimeline.tsx`)
 - `STEP_TIMES = [0.05, 1.25, 2.45, 3.35]` : seuils d'activation des 4 étapes,
   ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`).
-- **Cartes d'étape** liées à ces labels, affichées **une par une comme des
-  pages qui défilent** (desktop ET mobile) : une seule carte visible dans un
-  slot centré (`max-w-2xl`, `min-h`), la suivante monte depuis le bas
-  (`y: 40 → 0`, `back.out(1.6)`, 0.6s, stagger interne 0.08s) pendant que la
-  précédente glisse vers le haut (`y: -40`, `opacity 0`, `power2.in`) —
-  tout en `scrub`, donc réversible au scroll inverse.
-- **Lignes pointillées terracotta** (`stroke-dasharray: 1 8`) : seul le tracé
-  de l'étape active est visible, du point vers le centre du slot de carte
-  (coordonnées fixes dans le viewBox, pas de mesure DOM).
-- **Points d'avancement** sous la carte (`.step-dot`) : l'actif passe en
-  terracotta + `scale 1.35`, le précédent revient en mist — pilotés par la
-  timeline, sans aucun état React.
+- **Bloc de contenu par étape** (`.service-state`) au-dessus du tracé : une
+  seule section visible (`Création` → `Lancement` → `Hébergement` → `Accès
+  admin`), la précédente glisse vers le haut (`y: -30`, `opacity 0`,
+  `power2.in`) pendant que la suivante monte (`back.out(1.4)`, 0.6s) —
+  sensation de page qui défile, tout en `scrub`.
+- **Libellés inline dans le SVG** sous chaque point (desktop) ou à droite
+  (mobile), en slate-blue, 2 à 3 lignes selon l'espace.
 - `CROWN_GLOWS = [6, 12, 18, 24]` : rayon du `drop-shadow` terracotta,
   une pointe de couronne s'allume par étape.
 - Remplissage couronne : `clipPath` rect animé `y: -14 → -80`, `height: 6 → 76`
@@ -83,7 +78,11 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
   (angles/distances aléatoires), shake `x: 5, repeat: 3, yoyo`.
   Le « pop » élastique (`elastic.out(1, 0.4)`) est déclenché par `onUpdate`
   quand `progress >= 0.985` (rejoué à chaque arrivée, réinitialisé sous `0.9`).
-- Desktop : `pin: true`, `start: "top 65%"`, `end: "+=200%"`, `scrub: 1`.
+- Desktop : bloc **entier épinglé** sous le header — `pin: true`,
+  `start: "top top+=80"`, `end: "+=260%"`, `scrub: 1`, racine en
+  `md:h-[calc(100dvh-96px)]` (titre + bloc + tracé tiennent dans le viewport :
+  aucun vide au-dessus pendant le scrub). Le bloc de contenu devient `sticky`
+  en mobile pour rester visible pendant le tracé vertical.
   Mobile (< 768px) : tracé vertical, sans pin (`"top 75%" → "bottom 55%"`).
 - `prefers-reduced-motion` : tout affiché (chemin 100%, couronne allumée,
   cartes visibles, lignes pointillées opaques), sans timeline.

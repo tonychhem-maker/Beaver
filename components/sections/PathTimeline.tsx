@@ -1,39 +1,41 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { PenTool, Rocket, Server, MousePointerClick, type LucideIcon } from "lucide-react";
+import Image from "next/image";
 import { gsap, useGSAP, registerGsap } from "@/lib/gsap";
 
-const LABELS = [
-  "Création de votre site",
-  "Lancement de votre site",
-  "Hébergement de votre site",
-  "À vous de jouer avec les accès admin",
+/** Libellés sous chaque point du tracé (1 à 3 lignes selon l'espace). */
+const STEP_LABELS: string[][] = [
+  ["création de", "votre site"],
+  ["lancement de", "votre site"],
+  ["hébergement de", "votre site"],
+  ["à vous de jouer", "avec les accès", "admin"],
 ];
 
-/** Cartes de révélation : numéro, titre, phrase et icône (charte de la marque). */
-const STEP_CARDS: Array<{ title: string; text: string; Icon: LucideIcon }> = [
+/** Bloc de contenu affiché au scroll : une section par étape. */
+const CONTENT_STEPS = [
   {
     title: "Création de votre site",
-    text: "On conçoit un site à votre image, de zéro, avec un design immersif et une identité soignée.",
-    Icon: PenTool,
+    text: "Nous créons votre site web à votre image de marque, de zéro. Rien à faire : contentez-vous d’admirer le site sans rien avoir à faire.",
   },
   {
     title: "Lancement de votre site",
-    text: "Mise en ligne, nom de domaine et réglages : tout est prêt, vous n’avez plus qu’à partager.",
-    Icon: Rocket,
+    text: "Mise en ligne, nom de domaine et réglages : tout est prêt le jour J, vous n’avez plus qu’à partager le lien.",
   },
   {
     title: "Hébergement de votre site",
-    text: "Hébergement rapide et sécurisé, avec maintenance et mises à jour assurées en continu.",
-    Icon: Server,
+    text: "Une fois votre site hébergé, nous vous proposons l’accès administrateur avec tous les accès aux insights et KPI de votre site.",
   },
   {
     title: "À vous de jouer avec les accès admin",
-    text: "Accès administrateur, insights et KPI : votre site entre enfin entre vos mains.",
-    Icon: MousePointerClick,
+    text: "Vos accès, vos KPI et vos réglages : à vous de jouer. On reste juste à côté si vous avez besoin de nous.",
   },
 ];
+
+const CONTENT_IMG = {
+  src: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=70",
+  alt: "Maquette de site web en cours de création",
+};
 
 const DESKTOP_PATH =
   "M 60 200 C 140 80, 260 80, 330 190 C 400 300, 520 300, 600 190 C 680 80, 800 80, 870 190 C 940 300, 1060 300, 1140 190";
@@ -61,12 +63,16 @@ const SPIKES = [
 ];
 
 /**
- * Signature du site : chemin en S qui se dessine au scroll (DrawSVG),
- * stylo lumineux (MotionPath), cartes d'étape qui se révèlent,
- * couronne qui s'illumine progressivement puis explosion finale.
+ * Section signature (fusion titre + bloc d'étape + tracé) :
+ * - un seul bloc épinglé en desktop (`start: "top top+=80"`, `end: "+=260%"`) :
+ *   le titre, le bloc de contenu et le tracé tiennent dans le viewport —
+ *   plus de vide au-dessus pendant le scrub ;
+ * - à chaque étape (`step1…step4`) : le point se remplit, le bloc de contenu
+ *   échange sa section (sortie vers le haut / entrée par le bas) ;
+ * - DrawSVG + MotionPath sur le tracé, couronne qui se remplit puis éclate.
  *
- * Réglages : STEP_TIMES (seuils d'allumage), durées dans la timeline,
- * CROWN_GLOWS (intensité du glow par étape).
+ * Réglages : STEP_TIMES (seuils), CROWN_GLOWS (glow), durées 0.6/0.45 (échange
+ * du bloc), `end: "+=260%"` (longueur totale du défilement).
  */
 const STEP_TIMES = [0.05, 1.25, 2.45, 3.35];
 const CROWN_GLOWS = [6, 12, 18, 24];
@@ -91,9 +97,7 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
       const svgEl = q("svg")[0] as unknown as SVGSVGElement;
       const pen = q(".pen")[0];
       const stepEls = q(".step");
-      const cards = q(".step-card");
-      const connectors = q(".step-connector");
-      const dots = q(".step-dot");
+      const states = q(".service-state");
       const clipRect = q(".crown-clip-rect")[0];
       const crown = q(".crown")[0];
       const crownColored = q(".crown-colored")[0];
@@ -111,7 +115,7 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
       gsap.set(halo, { opacity: 0, scale: 1, transformOrigin: "center" });
 
       if (reduced) {
-        // Chemin complet, couronne allumée, cartes affichées, pas de pin.
+        // Chemin complet, couronne allumée, sections empilées, pas de pin.
         gsap.set(active, { drawSVG: "100%" } as gsap.TweenVars);
         gsap.set(fills, { scale: 1 });
         gsap.set(numbers, { fill: "#B05F3F" });
@@ -122,9 +126,7 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
         return;
       }
 
-      gsap.set(cards, { y: 40, opacity: 0, scale: 0.92 });
-      gsap.set(connectors, { opacity: 0 });
-      gsap.set(dots, { backgroundColor: "#9DB0CB", scale: 1 });
+      gsap.set(states, { y: 30, opacity: 0, scale: 0.98 });
 
       // Halo qui pulse en boucle (scale seul, l'opacité reste pilotée par le scrub).
       const pulse = gsap.to(halo, { scale: 1.3, duration: 2, yoyo: true, repeat: -1, ease: "sine.inOut" });
@@ -164,9 +166,11 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
               onUpdate: onProgressUpdate,
             }
           : {
+              // Épinglage juste sous le header : tout le contenu est visible
+              // dès le début du scrub (pas de zone vide au-dessus).
               trigger: root,
-              start: "top 65%",
-              end: "+=200%",
+              start: "top top+=80",
+              end: "+=260%",
               scrub: 1,
               pin: true,
               anticipatePin: 1,
@@ -212,24 +216,11 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
           t,
         );
 
-        // ——— Carte d'étape : une seule visible, remplacée comme une page qui défile ———
-        const card = cards[i] as Element;
-        const parts = Array.from((card as HTMLElement).querySelectorAll<HTMLElement>(".step-card-part"));
+        // ——— Section de contenu de l'étape : la précédente glisse vers le haut ———
         if (i > 0) {
-          // La carte précédente glisse vers le haut (page qu'on fait défiler).
-          tl.to(cards[i - 1] as Element, { y: -40, opacity: 0, scale: 0.95, duration: 0.5, ease: "power2.in" }, t);
-          if (!vertical) tl.to(connectors[i - 1] as Element, { opacity: 0, duration: 0.35 }, t);
-          tl.to(dots[i - 1] as Element, { backgroundColor: "#9DB0CB", scale: 1, duration: 0.3 }, t);
+          tl.to(states[i - 1] as Element, { y: -30, opacity: 0, duration: 0.45, ease: "power2.in" }, t);
         }
-        // Nouvelle carte qui monte depuis le bas.
-        tl.to(card, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, t);
-        if (parts.length > 0) {
-          tl.to(parts, { y: 0, opacity: 1, duration: 0.45, stagger: 0.08, ease: "power2.out" }, t);
-        }
-        // Ligne pointillée de l'étape active vers la carte.
-        if (!vertical) tl.to(connectors[i] as Element, { opacity: 1, duration: 0.35 }, t);
-        // Point d'avancement actif (terracotta).
-        tl.to(dots[i] as Element, { backgroundColor: "#B05F3F", scale: 1.35, duration: 0.3 }, t);
+        tl.to(states[i] as Element, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, t);
       });
 
       // Finale : halo, étincelles dorées (angles aléatoires), léger shake.
@@ -250,132 +241,141 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
     { scope: rootRef, dependencies: [vertical, reduced] },
   );
 
+  const rootClass = [
+    "flex flex-col gap-4 md:grid md:grid-cols-2 md:grid-rows-[auto_auto_1fr] md:gap-x-10 md:gap-y-5",
+    !reduced && "md:h-[calc(100dvh-96px)]",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const blockClass = [
+    "relative min-h-[200px] md:min-h-0 md:h-[clamp(170px,24vh,250px)]",
+    !reduced && "sticky top-[76px] z-20 bg-sand pt-1 md:static md:z-auto md:bg-transparent md:pt-0",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div ref={rootRef} className="rounded-[12px] border border-terracotta/70 bg-gradient-to-b from-[#F1ECDA] to-[#E2DABD] p-4 md:p-8">
-      <h3 className="sr-only">Les étapes de votre projet</h3>
-      <ol className="sr-only">
-        {LABELS.map((l) => (
-          <li key={l}>{l}</li>
-        ))}
-      </ol>
-      <svg
-        viewBox={viewBox}
-        preserveAspectRatio="xMidYMid meet"
-        className="h-auto w-full"
-        role="img"
-        aria-label="Parcours en 4 étapes : création, lancement, hébergement de votre site, puis à vous de jouer avec les accès admin, jusqu'à la couronne."
-      >
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#5F6670" />
-            <stop offset="100%" stopColor="#B05F3F" />
-          </linearGradient>
-          <clipPath id={clipId}>
-            <rect className="crown-clip-rect" x="-52" y="-14" width="104" height="6" />
-          </clipPath>
-        </defs>
+    <div ref={rootRef} className={rootClass}>
+      <h2 id="services-title" className="text-4xl font-bold tracking-tight text-terracotta md:col-span-2 md:text-5xl xl:text-6xl">
+        Nos services et prestations
+      </h2>
 
-        {/* Lignes pointillées : étape active ↔ carte affichée (desktop uniquement) */}
-        {!vertical &&
-          !reduced &&
-          steps.map((s, i) => (
-            <polyline
-              key={`connector-${i}`}
-              className="step-connector"
-              fill="none"
-              stroke="#B05F3F"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeDasharray="1 8"
-              points={`${s.x},${s.y} ${s.x},320 650,320 650,355`}
-            />
+      {/* Bloc d'étape : une section visible à la fois, remplacée au scroll */}
+      <div className={blockClass}>
+        <ol className="sr-only">
+          {STEP_LABELS.map((lines) => (
+            <li key={lines.join(" ")}>{lines.join(" ")}</li>
           ))}
-
-        {/* Fantôme gris clair */}
-        <path d={path} fill="none" stroke="#5F6670" strokeWidth="3" strokeLinecap="round" opacity="0.25" />
-        {/* Actif terracotta (DrawSVG) */}
-        <path className="path-active" d={path} fill="none" stroke={`url(#${gradId})`} strokeWidth="3" strokeLinecap="round" />
-
-        {/* Étapes */}
-        {steps.map((s, i) => (
-          <g key={i} className="step" transform={`translate(${s.x} ${s.y})`}>
-            <circle className="ripple" r="17" fill="none" stroke="#B05F3F" strokeWidth="2" />
-            <circle r="16" fill="#FFFDF7" stroke="#1a1a1a" strokeWidth="1.5" />
-            <circle className="step-fill" r="16" fill="#B05F3F" />
-            <text className="step-num" textAnchor="middle" dy="6" fontSize="17" fontWeight="700" fill="#1a1a1a">
-              {i + 1}
-            </text>
-          </g>
-        ))}
-
-        {/* Stylo lumineux */}
-        <g className="pen" style={{ filter: "drop-shadow(0 0 8px rgba(176,95,63,.9))" }}>
-          <circle r="15" fill="#B05F3F" opacity="0.22" />
-          <circle r="6" fill="#B05F3F" stroke="#FFFDF7" strokeWidth="2" />
-        </g>
-
-        {/* Couronne */}
-        <g className="crown" transform={`translate(${crownPos.x} ${crownPos.y})`}>
-          <circle className="crown-halo" r="52" fill="#B05F3F" opacity="0" />
-          {/* Version inactive grise */}
-          <g opacity="0.3" style={{ filter: "grayscale(1)" }}>
-            <path d={CROWN_BODY} fill="#8A8F98" />
-            <rect x="-46" y="-20" width="92" height="10" rx="2" fill="#8A8F98" />
-          </g>
-          {/* Version terracotta révélée par le masque */}
-          <g className="crown-colored" clipPath={`url(#${clipId})`}>
-            <path d={CROWN_BODY} fill="#B05F3F" />
-            <rect x="-46" y="-20" width="92" height="10" rx="2" fill="#B05F3F" />
-          </g>
-          {SPIKES.map((p, i) => (
-            <circle key={i} className="spike" cx={p.x} cy={p.y} r="6" fill="#B05F3F" style={{ filter: "drop-shadow(0 0 6px rgba(176,95,63,.9))" }} />
-          ))}
-          {/* Étincelles dorées */}
-          {Array.from({ length: 16 }).map((_, i) => (
-            <circle key={i} className="spark" r="3" fill="#E3A83B" />
-          ))}
-        </g>
-      </svg>
-
-      {/* Carte d'étape : une seule à la fois, remplacée comme une page qui défile */}
-      <div className={reduced ? "mt-6 grid grid-cols-1 gap-4 md:grid-cols-4" : "relative mt-6 min-h-[280px] md:min-h-[220px]"}>
-        {STEP_CARDS.map(({ title, text, Icon }, i) => (
-          <article
-            key={title}
-            className={[
-              "step-card rounded-[24px] border border-terracotta bg-paper p-5 shadow-[0_20px_40px_-20px_rgba(176,95,63,0.35)]",
-              reduced ? "" : "absolute inset-x-0 top-0 mx-auto w-full max-w-2xl",
-            ].join(" ")}
+        </ol>
+        {CONTENT_STEPS.map((s) => (
+          <div
+            key={s.title}
+            className={["service-state", reduced ? "mb-6 last:mb-0" : "absolute inset-0"].join(" ")}
           >
-            <div className="step-card-part flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-forest text-sm font-bold text-white">
-                {i + 1}
-              </span>
-              <Icon size={20} className="text-terracotta" aria-hidden="true" />
-            </div>
-            <h4 className="step-card-part mt-3 text-lg font-bold text-terracotta" style={{ fontWeight: 700 }}>
-              {title}
-            </h4>
-            <p className="step-card-part mt-2 text-[15px] leading-relaxed text-slate-blue" style={{ fontWeight: 400 }}>
-              {text}
-            </p>
-          </article>
+            <h3 className="text-2xl font-medium text-terracotta">{s.title}</h3>
+            <p className="mt-3 max-w-xl text-[17px] leading-[1.6] text-neutral-900">{s.text}</p>
+          </div>
         ))}
       </div>
 
-      {/* Points d'avancement du parcours */}
-      {!reduced && (
-        <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
-          {STEP_CARDS.map(({ title }) => (
-            <span key={title} className="step-dot h-2.5 w-2.5 rounded-full bg-mist transition-none" />
+      {/* Visuel d'illustration (statique, comme la maquette) */}
+      <div className="relative h-48 overflow-hidden rounded-[24px] bg-paper md:h-[clamp(170px,24vh,250px)]">
+        <Image src={CONTENT_IMG.src} alt={CONTENT_IMG.alt} fill sizes="(max-width: 768px) 92vw, 560px" className="object-cover" loading="lazy" />
+      </div>
+
+      {/* Tracé + couronne */}
+      <div className="flex flex-col overflow-hidden rounded-[12px] border border-terracotta/70 bg-gradient-to-b from-[#F1ECDA] to-[#E2DABD] p-3 md:col-span-2 md:h-full md:min-h-0 md:p-6">
+        <svg
+          viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
+          className="h-auto w-full md:h-full md:min-h-0"
+          role="img"
+          aria-label="Parcours en 4 étapes : création, lancement, hébergement de votre site, puis à vous de jouer avec les accès admin, jusqu'à la couronne."
+        >
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#5F6670" />
+              <stop offset="100%" stopColor="#B05F3F" />
+            </linearGradient>
+            <clipPath id={clipId}>
+              <rect className="crown-clip-rect" x="-52" y="-14" width="104" height="6" />
+            </clipPath>
+          </defs>
+
+          {/* Fantôme gris clair */}
+          <path d={path} fill="none" stroke="#5F6670" strokeWidth="3" strokeLinecap="round" opacity="0.25" />
+          {/* Actif terracotta (DrawSVG) */}
+          <path className="path-active" d={path} fill="none" stroke={`url(#${gradId})`} strokeWidth="3" strokeLinecap="round" />
+
+          {/* Étapes */}
+          {steps.map((s, i) => (
+            <g key={i} className="step" transform={`translate(${s.x} ${s.y})`}>
+              <circle className="ripple" r="17" fill="none" stroke="#B05F3F" strokeWidth="2" />
+              <circle r="16" fill="#FFFDF7" stroke="#1a1a1a" strokeWidth="1.5" />
+              <circle className="step-fill" r="16" fill="#B05F3F" />
+              <text className="step-num" textAnchor="middle" dy="6" fontSize="17" fontWeight="700" fill="#1a1a1a">
+                {i + 1}
+              </text>
+            </g>
           ))}
-        </div>
-      )}
+
+          {/* Libellés de chaque étape (desktop : sous le point ; mobile : à droite) */}
+          {!vertical &&
+            STEP_LABELS.map((lines, i) => (
+              <text key={`lb-d-${i}`} x={steps[i].x} y={306} textAnchor="middle" fontSize="17" fontWeight="500" fill="#3F5F85">
+                {lines.map((ln, j) => (
+                  <tspan key={j} x={steps[i].x} dy={j === 0 ? 0 : 20}>
+                    {ln}
+                  </tspan>
+                ))}
+              </text>
+            ))}
+          {vertical &&
+            STEP_LABELS.map((lines, i) => (
+              <text key={`lb-v-${i}`} x={245} y={steps[i].y + 5} textAnchor="start" fontSize="19" fontWeight="500" fill="#3F5F85">
+                {lines.map((ln, j) => (
+                  <tspan key={j} x={245} dy={j === 0 ? -6 : 22}>
+                    {ln}
+                  </tspan>
+                ))}
+              </text>
+            ))}
+
+          {/* Stylo lumineux */}
+          <g className="pen" style={{ filter: "drop-shadow(0 0 8px rgba(176,95,63,.9))" }}>
+            <circle r="15" fill="#B05F3F" opacity="0.22" />
+            <circle r="6" fill="#B05F3F" stroke="#FFFDF7" strokeWidth="2" />
+          </g>
+
+          {/* Couronne */}
+          <g className="crown" transform={`translate(${crownPos.x} ${crownPos.y})`}>
+            <circle className="crown-halo" r="52" fill="#B05F3F" opacity="0" />
+            {/* Version inactive grise */}
+            <g opacity="0.3" style={{ filter: "grayscale(1)" }}>
+              <path d={CROWN_BODY} fill="#8A8F98" />
+              <rect x="-46" y="-20" width="92" height="10" rx="2" fill="#8A8F98" />
+            </g>
+            {/* Version terracotta révélée par le masque */}
+            <g className="crown-colored" clipPath={`url(#${clipId})`}>
+              <path d={CROWN_BODY} fill="#B05F3F" />
+              <rect x="-46" y="-20" width="92" height="10" rx="2" fill="#B05F3F" />
+            </g>
+            {SPIKES.map((p, i) => (
+              <circle key={i} className="spike" cx={p.x} cy={p.y} r="6" fill="#B05F3F" style={{ filter: "drop-shadow(0 0 6px rgba(176,95,63,.9))" }} />
+            ))}
+            {/* Étincelles dorées */}
+            {Array.from({ length: 16 }).map((_, i) => (
+              <circle key={i} className="spark" r="3" fill="#E3A83B" />
+            ))}
+          </g>
+        </svg>
+      </div>
     </div>
   );
 }
 
-/** Conteneur responsive : version horizontale desktop / verticale mobile. */
+/** Conteneur responsive : version horizontale desktop (épinglée) / verticale mobile. */
 export function PathTimeline() {
   const [vertical, setVertical] = useState<boolean>(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches,
@@ -399,7 +399,7 @@ export function PathTimeline() {
   }, []);
 
   return (
-    <div className="mx-auto mt-14 max-w-7xl md:mt-20">
+    <div className="mx-auto max-w-7xl">
       <Canvas key={`${vertical ? "v" : "h"}-${reduced ? "r" : "a"}`} vertical={vertical} reduced={reduced} />
     </div>
   );
