@@ -207,7 +207,10 @@ function Canvas({ vertical, reduced }: { vertical: boolean; reduced: boolean }) 
       tl.fromTo(clipRect, { attr: { y: -14, height: 6 } }, { attr: { y: -80, height: 76 }, duration: 4 }, 0);
 
       stepEls.forEach((_, i) => {
-        const t: gsap.Position = `step${i + 1}`;
+        // Position NUMÉRIQUE et non label ("step2" + 0.35 = "step20.35" :
+        // concaténation de string → label fantôme ajouté à la fin de la
+        // timeline → les textes entraient tous après la couronne !).
+        const t: number = STEP_TIMES[i];
         // Pastille qui se remplit (scale 0 → 1, back.out) + chiffre noir → terracotta.
         tl.to(fills[i] as Element, { scale: 1, duration: 0.3, ease: "back.out(2)" }, t);
         tl.to(numbers[i] as Element, { fill: "#B05F3F", duration: 0.3 }, t);

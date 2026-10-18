@@ -61,13 +61,16 @@ Sans `RESEND_API_KEY`, `POST /api/booking` répond quand même `{ ok: true }` ap
 - Parallax souris : `gsap.quickTo`, amplitude ±20px (`nx * 40`), inertie `0.6s`.
 
 ### Chemin signature (`components/sections/PathTimeline.tsx`)
-- `STEP_TIMES = [0.05, 1.1, 2.05, 2.95]` : seuils d'activation des 4 étapes,
-  ajoutés comme labels de timeline `step1…step4` (`tl.addLabel`). Le dernier
-  échange de texte se termine à ~90% du scrub : le reliquat (remplissage de
-  la couronne, halo, étincelles, pop) ne contient plus aucun texte en
-  transition, donc **dès que la couronne est atteinte, le pin se libère et
-  la section suivante prend le relais sans aucun empilement** (même avec le
-  retard de `scrub: 1`).
+- `STEP_TIMES = [0.05, 1.1, 2.05, 2.95]` : seuils d'activation des 4 étapes
+  (labels `step1…step4` ajoutés pour référence, mais **positions de timeline
+  toujours numériques** — piège classique : `"step2" + 0.35` en JS donne
+  `"step20.35"`, un label fantôme que GSAP ajoute à la fin de la timeline ;
+  les textes entraient alors tous après la couronne et s'empilaient). Le
+  dernier échange de texte se termine à ~90% du scrub : le reliquat
+  (remplissage de la couronne, halo, étincelles, pop) ne contient plus aucun
+  texte en transition, donc **dès que la couronne est atteinte, le pin se
+  libère et la section suivante prend le relais sans aucun empilement** (même
+  avec le retard de `scrub: 1`).
 - **Bloc de contenu par étape** (`.service-state`) au-dessus du tracé : une
   seule section visible (`Création` → `Lancement` → `Hébergement` → `Accès
   admin`). Passage **strictement séquentiel** (`SWAP`) : la précédente sort
